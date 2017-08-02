@@ -18,6 +18,10 @@
 \usetikzlibrary{fit}
 \usetikzlibrary{positioning}
 
+% Double figures
+\usepackage{caption}
+\usepackage{subcaption}
+
 % Rotate text with \rotatebox{90}{Text}
 \usepackage{graphicx}
 
@@ -114,10 +118,9 @@ Figure \ref{fig:nss-network} illustrates these relationships. The United States 
 
 \node (16) [below right=-0.6cm and 0.2cm of 10]{\rotatebox{270}{\hspace{0mm}C3RAF}};
 \node[draw,dashed,fit=(6) (16) (15) (10)] {};
-
 \end{tikzpicture}
-\label{fig:nss-network}
 \caption{Relationships between Air Force core capabilities and National Security Strategy.}
+\label{fig:nss-network}
 \end{figure}
 
 The scope, diversity, and uniqueness of the Air Force's core capabilities make enterprise risk management incredibly difficult. For these reasons, prior to this effort, Air Force risk management was largely confined to ``stove-pipes'' of operational chains-of-command. Although this arrangement is effective for a commander whose scope of authority is limited to a single core capability, those responsible for force integration cannot effectively compare risk across different core capabilities. Furthermore, interdependencies between Air Force core capabilities exacerbate this difficulty: even if you have a common risk ``currency'' across core capabilities, mitigating or accepting risk in one area may have higher order effects on others.
@@ -161,8 +164,8 @@ Specifying a demand distribution manually is a fairly cognitively difficult task
   \draw (4, 0) node[below] {Materiel Delivered};
   \draw (0, 2) node[left] {\rotatebox{90}{$\mathbb{P}(\text{Met Requirement})$}};
 \end{tikzpicture}
-\label{fig:airlift-risk}
 \caption{Cumulative distribution function of required airlift (blue) and Air Force risk assessment framework approximation (red).}
+\label{fig:airlift-risk}
 \end{figure}
 The simplicity of the uniform distribution allows for operational experts to easily define the distribution in terms of parameters with operational relevance: they simply specify the upper and lower bounds of what demand they believe to be plausible. This simplicity provides transparency and repeatability to the process, which is critical in the absence of objective data \citep{gallagher2016improving}.
 
@@ -206,7 +209,67 @@ The simplicity and effectiveness of the \citeauthor{haimes-iiom} model has led t
 
 \section{Methodology}
 
+Literature precedent provides a solid foundation for us to build our comprehensive Air Force risk assessment. While the Risk Assessment framework of \citet{gallagher2016improving} is directly applicable, the \ac{dematel} and \citet{haimes-iiom} models must be modified to fit our application.
+
 \subsection{Dependency Estimation}
+The \ac{dematel} method assumes unbiased experts are available to determine the first-order relationships between systems $i$ and $j$ \citep{dematel-overview}. However, the Air Force does not have such experts in abundance: rather, expertise is generally acquired exclusively within the context of a single core capability. Consequently, while experts may be able to speak to dependencies and impacts of their core capabilities, they did not feel comfortable assessing other relationships. Parochialism adds another layer of complexity: in the author's experience, experts tend to overestimate the usefulness of their core capability to others while underestimating the magnitude of support it requires.
+
+Imposing additional structure on the responses of the experts can help alleviate these problems \citep{ahp}. One approach could be to constrain the number of times an expert gives a minimal or maximum assessment of a dependency. However, without prior knowledge of the structure of the network, this constraint would be entirely arbitrary. 
+
+An alternative approach could exploit the fact that our experts only feel comfortable assessing relationships directly tied to their assigned core capability. Instead of instructing experts to assess each relationship individually, we could give each core capability expert 100 ``points,'' which he or she could proportionally allocate to the other core capabilities that the expert's core capability depends on. Similarly, each core capability expert could get 100 ``points'' to allocate to the core capabilities that the expert's core capability provides support to. 
+
+Figures \ref{fig:point} illustrate this constraint through the lens of an expert on air to air combat. In Figure \ref{fig:point-dep}, the expert acknowledges that air to air combat is heavily dependent on the capability of suppressing enemy air defenses, and allocates 50 of her 100 points to that core capability. Air refueling and pilot training are also important, but less so, so she awards them 20 points each. Precision strikes are rarely required to support air to air combat, so the remaining ten points are allocated to that capability. The expert similarly assesses the relative impacts of air to air combat on those core capabilities, as illustrated in Figure \ref{fig:point-imp}. 
+\begin{figure}[!htb]
+\centering
+\begin{subfigure}{.5\textwidth}
+\centering
+\begin{tikzpicture}[->,
+                    >=stealth',
+                    shorten >=1pt,
+                    node distance=2.7cm,
+                    thick,
+                    nss/.style={circle,draw,minimum size=2.0cm}
+                    %nms/.style={rectangle, draw, minimum width=2.2cm}
+                    ]
+  \node[nss] (1) [align=center]{\small Air to Air \\ \small Combat};
+  \node[nss] (2) [below right of=1, align=center]{\small Suppress\\ \small Defenses};
+  \node[nss] (3) [below left  of=1, align=center]{\small Air\\ \small Refueling};
+  \node[nss] (4) [above left  of=1, align=center]{\small Precision\\ \small Strike};
+  \node[nss] (5) [above right of=1, align=center]{\small Pilot\\ \small Training};
+  \draw [<-] (1) edge node[below left]  {\small 50} (2);
+  \draw [<-] (1) edge node[below right] {\small 20} (3);
+  \draw [<-] (1) edge node[above right]  {\small 10} (4);
+  \draw [<-] (1) edge node[above left] {\small 20} (5);
+\end{tikzpicture}
+\caption{Prioritized dependencies.}
+\label{fig:point-dep}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\centering
+\begin{tikzpicture}[->,
+                    >=stealth',
+                    shorten >=1pt,
+                    node distance=2.7cm,
+                    thick,
+                    nss/.style={circle,draw,minimum size=2.0cm}
+                    %nms/.style={rectangle, draw, minimum width=2.2cm}
+                    ]
+  \node[nss] (1) [align=center]{\small Air to Air \\ \small Combat};
+  \node[nss] (2) [below right of=1, align=center]{\small Suppress\\ \small Defenses};
+  \node[nss] (3) [below left  of=1, align=center]{\small Air\\ \small Refueling};
+  \node[nss] (4) [above left  of=1, align=center]{\small Precision\\ \small Strike};
+  \node[nss] (5) [above right of=1, align=center]{\small Pilot\\ \small Training};
+  \draw [->] (1) edge node[below left]  {\small 40} (2);
+  \draw [->] (1) edge node[below right] {\small 20} (3);
+  \draw [->] (1) edge node[above right]  {\small 40} (4);
+  \draw [->] (1) edge node[above left] {\small 0} (5);
+\end{tikzpicture}
+\caption{Prioritized impacts.}
+\label{fig:point-imp}
+\end{subfigure}
+\caption{Notional assessment of air-to-air combat relationships to other capabiliites.}
+\label{fig:point}
+\end{figure}
 
 
 \subsection{Risk Propagation}
@@ -233,8 +296,8 @@ A more serious concern is the constraint that the spectral radius of $\mathbf{D}
   \draw [->] (3) edge[bend left=60] node[left] {\small 90\%} (1);
   \draw [->] (3) edge[bend right=60] node[right] {\small 90\%} (2);
 \end{tikzpicture}
-\label{fig:ovary}
 \caption{Network for which the spectral radius of the relationship matrix $\mathbf{D}$ exceeds one.}
+\label{fig:ovary}
 \end{figure}
 The $\mathbf{D}$ matrix for Figure \ref{fig:ovary} is 
 \begin{equation*}
@@ -294,7 +357,7 @@ Because $d_{ij}\in [0,1]$ and $x_{j}\in [0,1]$, we note that the maximum value o
 While this approach initially seems unrelated to the \citeauthor{haimes-iiom} model, the two share a fundemental relationship described in Theorem \ref{thm:first-order}. 
 \begin{thm}
 \label{thm:first-order}
-The \citeauthor{haimes-iiom} is a first-order approximation of Equation \ref{eqn:rel}.
+The \citeauthor{haimes-iiom} model is a first-order approximation of Equation \ref{eqn:rel}.
 \end{thm}
 \begin{proof}
 We begin by taking the natural logarithm of both sides of Equation \ref{eqn:rel} and applying the identity $\log(ab) = \log(a) + \log(b)$. This substitution yields
