@@ -6,7 +6,11 @@
 % Packages for math
 \usepackage{amsmath,amsfonts,amssymb,amsthm,epsfig,epstopdf,titling,url,array}
 
+% Setup of thm env
 \newtheorem{thm}{Theorem}
+
+% Define norm display
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
 
 % Set double spacing 
 \usepackage{setspace}
@@ -267,10 +271,26 @@ Figures \ref{fig:point} illustrate this constraint through the lens of an expert
 \caption{Prioritized impacts.}
 \label{fig:point-imp}
 \end{subfigure}
-\caption{Notional assessment of air-to-air combat relationships to other capabiliites.}
+\caption{Notional assessment of air-to-air combat relationships to other capabilities.}
 \label{fig:point}
 \end{figure}
 
+Although imposing this structure on the experts does increase the repeatability of the elicitation, it does add a layer of complexity, as the points the experts allocated are only meaningful in relative terms. For example, while Figure \ref{fig:point-dep} indicates that the expert believes air to air combat requires air refueling twice as much as it requires precision strike, it does not provide an estimate for what percentage of missions require air refueling. Similarly, the air refueling expert may allocate 30 impact points to air-to-air combat, but these 30 points only have intrinsic meaning relative to the other capabilities air refueling impacts. Although both estimates of the same relationship|the dependence of air to air combat on air refueling|the two assessments not directly comparable.
+
+In order to combine the two assessments, we apply a maximum-likelihood estimation technique \citep{mle}. Suppose $\mathbf{D}_D$ is the ``dependency'' matrix, where each entry $d_{ij}^{(D)}$ contains the dependency points expert $i$ allocated to core capability $j$. Conversely, let $\mathbf{D}_I$ be the ``impact'' matrix where each element $d_{ij}^{(D)}$ is number of impact points core capability $j$ allocated to core capability $i$. Due to our constraint that experts can only allocate 100 impact points and 100 dependency points, we know that the rows of $\mathbf{D}_D$ must sum to 100, and the columns of $\mathbf{D}_I$ must sum to 100.
+
+Now, suppose $\widehat{\mathbf{D}}$ is an arbitrary guess for the true relationship matrix $\mathbf{D}$. If this guess were correct, then we would expect that the experts would have assessed dependency matrix $\widehat{\mathbf{D}_D}$, where we model the forced prioritization of the experts by dividing each element of $\widehat{\mathbf{D}}$ by its row sum, and then multiplying by 100. Similarly, if $\widehat{\mathbf{D}}$ were the correct relationship matrix, then we can calculate the impact matrix the experts would have assessed, $\widehat{\mathbf{D}_I}$, by dividing each element of $\widehat{\mathbf{D}}$ by its column sum and multiplying by 100.
+
+In other words, we would have expected to see matrices $\widehat{\mathbf{D}_I}$ and $\widehat{\mathbf{D}_D}$, but instead, our data were $\mathbf{D}_D$ and $\mathbf{D}_I$. By assuming normally distributed error, we can calculate the likelihood of our guess $\widehat{\mathbf{D}}$ using the Frobenious norm:
+
+\begin{equation}
+\label{eqn:likelihood}
+\mathbb{P}\left(\mathbf{D}_I, \mathbf{D}_D \mid \widehat{\mathbf{D}}\right) \propto \norm{\mathbf{D}_D - \widehat{\mathbf{D}_D }}_\mathcal{F}^2 + \norm{\mathbf{D}_I - \widehat{\mathbf{D}_I }}_\mathcal{F}^2
+\end{equation}
+
+By finding the value of $\widehat{\mathbf{D}}$ that maximizes Equation \ref{eqn:likelihood}, we can estimate the true value of the underlying relationships. Although the normalization of $\widehat{\mathbf{D}}$ to create $\widehat{\mathbf{D}_D}$ and $\widehat{\mathbf{D}_I}$ makes this optimization nonconvex, heuristic searches such as the Nelder-Mead method \citep{nelder1965simplex} can still identify a reasonable estimate for $\widehat{\mathbf{D}}$.
+
+Another significant drawback of this normalization is that the value of Equation \ref{eqn:likelihood} is identical for all matrices that are scalar multiples. Consequently, once the optimization algorithm converges to a $\widehat{\mathbf{D}}$, we must identify the scalar multiple of that matrix to use in the risk propagation model. We describe the method used to determine this scalar in Section \ref{section:application}. 
 
 \subsection{Risk Propagation}
 
@@ -288,7 +308,7 @@ A more serious concern is the constraint that the spectral radius of $\mathbf{D}
                     nss/.style={circle,draw,minimum size=2.2cm},
                     %nms/.style={rectangle, draw, minimum width=2.2cm}
                     ]
-  \node[nss] (1) [align=center]{\small \\ Air \small Refueling};
+  \node[nss] (1) [align=center]{\small Air \\ \small Refueling};
   \node[nss] (2) [right of=1, align=center]{\small Defense\\ \small Suppression};
   \node[nss] (3) [below right=1cm and -0.3cm of 1, align=center]{\small Air-to-Air\\ \small Combat};
   \draw [->] (1) edge node[left] {\small 90\%} (3);
@@ -344,7 +364,7 @@ The function $f$ described in Equation \ref{eqn:rel} is locally Lipschitz contin
 We proceed directly and show that Lipschitz continuity holds for each element $\hat{r_i}$. Let $\mathbf{x}^{(1)}$ and $\mathbf{x}^{(2)}$ be arbitrary elements of $[0,1]^n$ and let $i$ be an arbitrary index between 1 and $n$. Then, 
 
 \begin{equation}
-f\left(x^{(1)}\right) - f\left(x^{(2)}\right) = 
+f\left(\mathbf{x}^{(1)}\right) - f\left(\mathbf{x}^{(2)}\right) = 
 \begin{bmatrix}
 \vdots \\
 (1-r_i)\left( \prod_j \left(1-d_{ij} x_j^{(1)} \right) -  \prod_j \left(1-d_{ij} x_j^{(2)} \right) \right)\\
@@ -404,7 +424,9 @@ Now, we establish that $\hat{r}_i^P \geq \hat{r}_i^M$. We again proceed by induc
 \end{proof}
 
 Theorem \ref{thm:bounds} is a powerful result that bounds the nonlinear behavior of Equation \ref{eqn:rel} by the linear behavior of Equations \ref{eqn:lin} and \ref{eqn:max}. While the nonlinear probability model must be solved iteratively, its output can be bounded through deterministic calculations. Furthermore, if we wished to explore variations on $\mathbf{r}$, e.g. to find one that minimizes network risk, we could explore the linear upper and lower bounds in polynomial time by using linear programming \citep{lp}.
-\section{Application Example}
+
+\section{Application}
+\label{section:application}
 
 \section{Conclusion}
 
