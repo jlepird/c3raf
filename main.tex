@@ -288,7 +288,7 @@ In other words, we would have expected to see matrices $\widehat{\mathbf{D}_I}$ 
 \mathbb{P}\left(\mathbf{D}_I, \mathbf{D}_D \mid \widehat{\mathbf{D}}\right) \propto \norm{\mathbf{D}_D - \widehat{\mathbf{D}_D }}_\mathcal{F}^2 + \norm{\mathbf{D}_I - \widehat{\mathbf{D}_I }}_\mathcal{F}^2
 \end{equation}
 
-By finding the value of $\widehat{\mathbf{D}}$ that maximizes Equation \ref{eqn:likelihood}, we can estimate the true value of the underlying relationships. Although the normalization of $\widehat{\mathbf{D}}$ to create $\widehat{\mathbf{D}_D}$ and $\widehat{\mathbf{D}_I}$ makes this optimization nonconvex, heuristic searches such as the Nelder-Mead method \citep{nelder1965simplex} can still identify a reasonable estimate for $\widehat{\mathbf{D}}$.
+By finding the value of $\widehat{\mathbf{D}}$ that maximizes Equation \ref{eqn:likelihood}, we can estimate the true value of the underlying relationships. Although the normalization of $\widehat{\mathbf{D}}$ to create $\widehat{\mathbf{D}_D}$ and $\widehat{\mathbf{D}_I}$ makes this optimization nonconvex\footnote{See \url{https://github.com/jlepird/c3raf/blob/master/convexity_proof.ipynb} for the proof of nonconvexity.}, heuristic searches such as the Nelder-Mead method \citep{nelder1965simplex} can still identify a reasonable estimate for $\widehat{\mathbf{D}}$.
 
 Another significant drawback of this normalization is that the value of Equation \ref{eqn:likelihood} is identical for all matrices that are scalar multiples. Consequently, once the optimization algorithm converges to a $\widehat{\mathbf{D}}$, we must identify the scalar multiple of that matrix to use in the risk propagation model. We describe the method used to determine this scalar in Section \ref{section:application}. 
 
